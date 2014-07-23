@@ -1,0 +1,294 @@
+<html>
+
+<head>
+<style>
+*{
+margin: 0px;
+}
+</style>
+<!--WRITTEN IN THE STARS-->
+<!--THE WORLD RISES FROM ASH 22.09.2013 11:40-->
+</head>
+
+<body Bgcolor="white" style="width: 100%; height: 100%">
+<canvas id="can"></canvas>
+<img id="friday" src="friday.png" style="display: none"></img>
+<script>
+
+window.addEventListener("resize",function(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
+
+var canvas=document.getElementById("can");
+var ctx=canvas.getContext('2d');
+var word="ASHUTOSH";
+var wnc=word.length;
+var n_balls=wnc*3000;
+var wl=162;
+var wh=131;
+
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+var offy=Math.floor(canvas.height/2-100);
+var offx=Math.floor(canvas.width/2-wl*wnc/2);
+
+function ball(m,u,r,x,y,a,c)
+	{
+	this.m=m;
+	this.u=u;
+	this.r=r;
+	this.x=x;
+	this.y=y;
+	this.a=a;
+	this.c=c;
+	}
+
+function createb(i)
+	{
+	var u=Math.floor(Math.random()*11+5);
+	var r=1;//Math.floor(Math.random()*10+30);
+	var m=Math.floor(Math.pow(r,3));
+	var temp=Math.random();
+	if(temp<0.5)
+	{
+	var x=Math.floor(Math.random()*100)+(canvas.width-100);
+	var y=Math.floor(Math.random()*100)+(canvas.height-100);
+	}
+	else if(temp<1)
+	{
+	var x=Math.floor(Math.random()*100);
+	var y=Math.floor(Math.random()*100);
+	}
+	var a=Math.floor(Math.random()*359)+1;
+	var opa=Math.random()*0.5+0.5;
+	var c="rgba("+Math.floor(Math.random()*247+10)+","+Math.floor(Math.random()*247+10)+","+Math.floor(Math.random()*247+10)+","+opa+")";
+	c="rgba(0,0,0,1)";
+	object[i]=new ball(m,u,r,x,y,a,c);
+	}
+	
+var matr=new Array(wnc);
+for(var i=0;i<wnc;i++)
+	matr[i]=new Array(wl);
+
+for(var i=0;i<wnc;i++)	
+	for(var j=0;j<wl;j++)
+		matr[i][j]=new Array(wh);
+
+for(var k=0;k<wnc;k++)		
+	for(var i=0;i<wl;i++)
+		for(var j=0;j<wh;j++)
+			matr[k][i][j]=0;
+	
+var object=new Array(n_balls);
+for(var i=0;i<n_balls;i++)
+	createb(i);
+
+var collAngle;
+var vel1x;	
+var vel1y;	
+var vel2x;	
+var vel2y;
+var f1x;
+var f2x;	
+	
+function checkcol(i)
+	{
+	for(var j=0;j<n_balls;j++)
+		{
+		if(j==i)
+			continue;
+		if(Math.sqrt(Math.pow(object[i].x-object[j].x,2)+Math.pow(object[i].y-object[j].y,2)) <= object[i].r+object[j].r)
+			{
+			collAngle = Math.atan((object[i].y-object[j].y)/(object[i].x-object[j].x));
+			vel1x = object[i].u*(Math.cos(Math.PI*object[i].a/180-collAngle));
+			vel1y = object[i].u*(Math.sin(Math.PI*object[i].a/180-collAngle));
+			vel2x = object[j].u*(Math.cos(Math.PI*object[j].a/180-collAngle));
+			vel2y = object[j].u*(Math.sin(Math.PI*object[j].a/180-collAngle));
+			
+			f1x = (vel1x*(object[i].m-object[j].m)+(2*object[j].m*vel2x))/(object[i].m+object[j].m);
+			f2x = (vel2x*(object[i].m-object[j].m)+(2*object[j].m*vel1x))/(object[i].m+object[j].m);
+			
+			object[i].u = Math.sqrt(Math.pow(f1x,2)+(Math.pow(vel1y,2)));
+			object[j].u = Math.sqrt(Math.pow(f2x,2)+(Math.pow(vel2y,2)));
+			object[i].a = (Math.atan(vel1y/f1x)-collAngle)*(180/Math.PI);
+			object[j].a = (Math.atan(vel2y/f2x)-collAngle)*(180/Math.PI);
+			
+			/*object[i].u = (object[i].u*(Math.cos(Math.PI*object[i].a/180-collAngle)*(object[i].m+object[j].m))+(2*object[j].m*object[j].u*Math.cos(Math.PI*object[j].a/180-collAngle)))*Math.cos(collAngle)/(object[i].m+object[j].m)+(object[i].u*Math.sin(Math.PI*object[i].a/180-collAngle)*Math.cos(collAngle+(Math.PI/2)));
+			object[j].u = (object[i].u*(Math.cos(Math.PI*object[i].a/180-collAngle)*(object[i].m+object[j].m))+(2*object[j].m*object[j].u*Math.cos(Math.PI*object[j].a/180-collAngle)))*Math.sin(collAngle)/(object[i].m+object[j].m)+(object[i].u*Math.sin(Math.PI*object[i].a/180-collAngle)*Math.sin(collAngle+(Math.PI/2)));*/
+			
+			console.log(object[i].u+" "+object[i].a);
+			break;
+			}
+		}
+	}
+	
+function move(i)
+	{
+	
+	if((object[i].x+object[i].r)>=canvas.width && (object[i].y-object[i].r)<=0)
+		object[i].a=225;
+	else if((object[i].y+object[i].r)>=canvas.height && (object[i].x-object[i].r)<=0)
+		object[i].a=45;
+	else if((object[i].x+object[i].r)>=canvas.width && (object[i].y+object[i].r)>=canvas.height) 
+		object[i].a=135;
+	else if((object[i].y-object[i].r)<=0 && (object[i].x-object[i].r)<=0)
+		object[i].a=315;
+	
+	else if((object[i].x+object[i].r)>=canvas.width || (object[i].x-object[i].r)<=0)
+		object[i].a=180-object[i].a;
+	else if((object[i].y+object[i].r)>=canvas.height || (object[i].y-object[i].r)<=0)
+		object[i].a=-1*object[i].a;		
+	//else
+		//checkcol(i);
+	
+	ctx.beginPath();
+	ctx.arc(object[i].x,object[i].y,object[i].r,0,2*Math.PI);
+	ctx.fillStyle=object[i].c;
+	ctx.fill();
+	ctx.closePath();
+	
+	object[i].x=object[i].x+object[i].u*Math.cos((360-object[i].a)*Math.PI/180);
+	object[i].y=object[i].y+object[i].u*Math.sin((360-object[i].a)*Math.PI/180);
+	object[i].x=Math.floor(object[i].x);
+	object[i].y=Math.floor(object[i].y);
+	
+	
+	for(var kk=0;kk<wnc;kk++)
+	{
+	if(word.slice(kk,kk+1)!=' ')	
+	if(object[i].y<(131+offy) && object[i].x<(162*(kk+1)+offx) && object[i].y>=offy && object[i].x>=((kk*162)+offx))
+	if(matr[kk][object[i].y-offy][object[i].x-(kk*162)-offx]==1)
+		{
+			object[i].c="rgba(255,0,0,1)";
+			matr[kk][object[i].y-offy][object[i].x-(kk*162)-offx]=0;
+			break;
+		}
+	}	
+	/*if(matr[1][object[i].y][object[i].x]==1)
+		{
+			object[i].c="rgba(255,255,255,1)";
+			matr[1][object[i].y][object[i].x]=0;
+		}
+
+	if(matr[2][object[i].y][object[i].x]==1)
+		{
+			object[i].c="rgba(255,255,255,1)";
+			matr[2][object[i].y][object[i].x]=0;
+		}*/		
+		
+	/*for(var ii=0;ii<wh;ii++)
+	for(var jj=0;jj<wl;jj++)
+	if(matr[1][ii][jj]==1)
+		{
+		if(object[i].y==(50+ii) && object[i].x==(50+162+jj))
+			{
+			object[i].c="rgba(255,255,255,1)";
+			matr[1][ii][jj]=0;
+			break;
+			}
+		}
+	
+	for(var ii=0;ii<wh;ii++)
+	for(var jj=0;jj<wl;jj++)
+	if(matr[2][ii][jj]==1)
+		{
+		if(object[i].y==(50+ii) && object[i].x==(50+324+jj))
+			{
+			object[i].c="rgba(255,255,255,1)";
+			matr[2][ii][jj]=0;
+			break;
+			}
+		}
+	*/
+	}
+	
+	
+var zzz=0,xxx=0,yyy=0;	
+var ran=1;
+var skip=25+(word.charCodeAt(zzz)-65)*wl;
+var imgd;
+
+window.onload=function()
+	{
+	while(zzz<wnc)
+	{
+	ctx.clearRect(0,0,canvas.width,canvas.height);
+	ctx.drawImage(friday,skip,0,162,131,0,0,162,131);
+	imgd=ctx.getImageData(0,0,162,131);
+	for(var i=0;i<(imgd.data.length);i+=4)
+		{
+		if(imgd.data[i]==0 && imgd.data[i+1]==0 && imgd.data[i+2]==0)
+			{
+			matr[zzz][xxx][yyy]=1;
+			imgd.data[i]=255;
+			imgd.data[i+1]=255;
+			imgd.data[i+2]=255;
+			}
+		else
+			{
+			imgd.data[i]=0;
+			imgd.data[i+1]=0;
+			imgd.data[i+2]=0;
+			}	
+		yyy++;	
+		if(yyy==162)
+			{
+			yyy=0;
+			xxx+=1;
+			}	
+		}	
+	zzz++;
+	skip=25+(word.charCodeAt(zzz)-65)*wl;
+	xxx=0;
+	yyy=0;
+	}	
+	//ctx.putImageData(imgd,0,250);
+	ctx.clearRect(0,0,canvas.width,canvas.height);
+	frame();
+	}
+	
+function frame()
+	{
+	//ctx.clearRect(0,0,canvas.width,canvas.height);
+	//ctx.drawImage(friday,skip,0,162,204,0,0,162,204);
+	//ctx.putImageData(imgd,0,250);
+	/*if(ran%10==0)
+		skip+=162;
+	ran++;*/	
+	for(var i=0;i<n_balls;i++)
+		if(object[i].c=="rgba(0,0,0,1)")
+			move(i);
+		else 
+			{
+			ctx.beginPath();
+			ctx.arc(object[i].x,object[i].y,object[i].r,0,2*Math.PI);
+			ctx.fillStyle=object[i].c;
+			ctx.fill();
+			ctx.closePath();
+			}
+	
+	/*for(var i=0;i<n_balls;i++)
+		{
+		if(object[i].c=="rgba(255,255,255,1)")
+			object[i].c="rgba(51,51,51,1)";
+		if(Math.random()>0.9)
+			{
+			object[i].c="rgba(255,255,255,1)";
+			break;
+			}
+		}*/	
+	/*if(ran%10==0)
+		{
+		ran=1;
+		for(var i=0;i<n_balls;i++)
+			{
+			
+			}
+		}
+	
+	ran++;*/
+	setTimeout(function(){frame()},17);
+	}
+
+
+</script>
+</body>
+</html>
